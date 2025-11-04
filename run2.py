@@ -11,6 +11,8 @@ def can_isolate(graph: defaultdict, virus: str) -> tuple[str, bool]:
         visited = {virus_pos}
         parent = {virus_pos: None}
         q = deque([(virus_pos, 0)])
+        met_gateway = False
+        variants = []
 
         while q:
             node, current_dist = q.popleft()
@@ -20,13 +22,18 @@ def can_isolate(graph: defaultdict, virus: str) -> tuple[str, bool]:
                 visited.add(nb)
                 parent[nb] = node
                 if nb[0].isupper():
+                    met_gateway = True
                     penultimate = node
                     distance_to_gateway = current_dist + 1
                     first_step = penultimate
                     while parent[first_step] != virus_pos and parent[first_step] is not None:
                         first_step = parent[first_step]
-                    return first_step, penultimate, distance_to_gateway
-                q.append((nb, current_dist + 1))
+                    variants.append((first_step, penultimate, distance_to_gateway, nb[0]))
+                else:
+                    q.append((nb, current_dist + 1))
+        if met_gateway:
+            minimal = min(variants, key=lambda x: (x[2], x[3]))
+            return minimal[0], minimal[1], minimal[2]
         return None, None, None
 
     while True:
@@ -73,9 +80,16 @@ def solve(edges: list[tuple[str, str]]) -> list[str]:
                 break
 
     return result
-
+def test():
+    edges = [('a', 'b'), ('b', 'c'), ('c', 'G'), ('b', 'f'), ('f', 'g'),
+             ('b', 'd'), ('d', 'e'), ('e', 'C'), ('e', 'D'), ('e', 'E'), ('e', 'F'),
+             ('g', 'A'), ('g', 'B'), ('e', 'H')]
+    result = solve(edges)
+    for edge in result:
+        print(edge)
 
 def main():
+    test()
     edges = []
     for line in sys.stdin:
         line = line.strip()
